@@ -26,7 +26,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
 var validateUser = function(req, res, next) {
-  console.log("Attempt validation", req.session.userId);
   if (!req.session.userId) {
     res.redirect('/login');
   } else {
@@ -95,7 +94,6 @@ function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
   var user = new User({name: username, hash: password}, function(userId) {
-    console.log("USER CREATED!", userId)
     req.session.userId = userId;
     res.redirect('/');
   });
