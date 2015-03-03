@@ -237,24 +237,24 @@ describe('', function() {
 
   }); // 'Priviledged Access'
 
-  xdescribe('Account Creation:', function(){
+  describe('Account Creation:', function(){
 
     it('Signup creates a user record', function(done) {
       var options = {
         'method': 'POST',
         'uri': 'http://127.0.0.1:4568/signup',
         'json': {
-          'username': 'Svnh',
-          'password': 'Svnh'
+          'name': 'Svnh',
+          'hash': 'Svnh'
         }
       };
 
       request(options, function(error, res, body) {
         db.knex('users')
-          .where('username', '=', 'Svnh')
+          .where('name', '=', 'Svnh')
           .then(function(res) {
-            if (res[0] && res[0]['username']) {
-              var user = res[0]['username'];
+            if (res[0] && res[0]['name']) {
+              var user = res[0]['name'];
             }
             expect(user).to.equal('Svnh');
             done();
@@ -272,8 +272,8 @@ describe('', function() {
         'method': 'POST',
         'uri': 'http://127.0.0.1:4568/signup',
         'json': {
-          'username': 'Phillip',
-          'password': 'Phillip'
+          'name': 'Phillip',
+          'hash': 'Phillip'
         }
       };
 
@@ -285,15 +285,15 @@ describe('', function() {
 
   }); // 'Account Creation'
 
-  xdescribe('Account Login:', function(){
+  describe('Account Login:', function(){
 
     var requestWithSession = request.defaults({jar: true});
 
     beforeEach(function(done){
       new User({
-          'username': 'Phillip',
-          'password': 'Phillip'
-      }).save().then(function(){
+          'name': 'Phillip',
+          'hash': 'Phillip'
+      }, function(){}).save().then(function(){
         done()
       });
     })
