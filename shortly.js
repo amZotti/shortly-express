@@ -3,6 +3,7 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
+var session = require('express-session');
 
 
 var db = require('./app/config');
@@ -14,6 +15,7 @@ var Click = require('./app/models/click');
 
 var app = express();
 
+app.use(session({secret: 'lol bbq', resave: false, saveUninitialized: true}));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());
@@ -23,6 +25,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+var validateUser = function(req, res, next) {
+  console.log("Attempt validation", req.session.userId);
+  if (!req.session.userId) {
+    res.redirect('/login');
+  } else {
+    next();
+  }
+};
 
 app.get('/',
 function(req, res) {
@@ -34,7 +44,7 @@ function(req, res) {
   res.render('index');
 });
 
-app.get('/links',
+app.get('/links', validateUser,
 function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
@@ -45,6 +55,33 @@ app.get('/signup',
 function(req, res) {
   res.render('signup');
 });
+
+app.get('/login',
+  function(req, res) {
+    res.render('login');
+});
+
+app.post('/login',
+  function(req, res) {
+    var username = req.body.username;
+    var password = req.body.password;
+    db.knex('users').where({
+      name: username
+    }).select('*').then(function(data) {
+      if (!data.length) {
+        res.redirect('/login');
+      } else {
+        bcrypt.compare(password, data[0].hash, function(err, result) {
+          if (!result) {
+            res.redirect('/login');
+          } else {
+            req.session.userId = data[0].id;
+            res.redirect('/');
+          }
+        });
+      }
+    });
+  });
 
 app.post('/signup',
 function(req, res) {
