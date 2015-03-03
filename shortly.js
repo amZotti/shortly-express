@@ -4,6 +4,9 @@ var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var bcrypt = require('bcrypt-nodejs');
 var session = require('express-session');
+var passport = require('passport');
+var GitHubStrategy = require('passport-github').Strategy;
+var credentials = require('./credentials.js');
 
 
 var db = require('./app/config');
@@ -15,7 +18,31 @@ var Click = require('./app/models/click');
 
 var app = express();
 
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
+
+
+passport.use(new GitHubStrategy({
+    clientID: credentials.GITHUB_CLIENT_ID,
+    clientSecret: credentials.GITHUB_CLIENT_SECRET,
+    callbackURL: "http://127.0.0.1:4568/auth/github/callback"
+  },
+
+  function(accessToken, refreshToken, profile, done) {
+    process.nextTick(function() {
+      return done(null, profile);
+    });
+  }
+));
+
 app.use(session({secret: 'lol bbq', resave: false, saveUninitialized: true}));
+app.use(passport.initialize());
+app.use(passport.session());
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 app.use(partials());
@@ -26,11 +53,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
 var validateUser = function(req, res, next) {
-  if (!req.session.userId) {
-    res.redirect('/login');
-  } else {
-    next();
+  if (req.isAuthenticated()) {
+      return next();
   }
+  res.redirect('/login');
 };
 
 app.get('/', validateUser,
@@ -50,15 +76,20 @@ function(req, res) {
   });
 });
 
+app.get('/auth/github/callback',
+  passport.authenticate('github', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    console.log('works');
+    res.redirect('/');
+  });
+
 app.get('/signup',
 function(req, res) {
-  res.render('signup');
+  res.redirect('/login');
 });
 
-app.get('/login',
-  function(req, res) {
-    res.render('login');
-});
+app.get('/login', passport.authenticate('github'), function(){});
 
 app.get('/logout',
 function(req, res) {

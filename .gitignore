@@ -1,3 +1,5 @@
+credentials.js
+
 node_modules
 *.sqlite
 *.DS_Store
