@@ -34,12 +34,12 @@ var validateUser = function(req, res, next) {
   }
 };
 
-app.get('/',
+app.get('/', validateUser,
 function(req, res) {
   res.render('index');
 });
 
-app.get('/create',
+app.get('/create', validateUser,
 function(req, res) {
   res.render('index');
 });
@@ -60,6 +60,13 @@ app.get('/login',
   function(req, res) {
     res.render('login');
 });
+
+app.get('/logout',
+function(req, res) {
+  req.session.userId = null;
+  res.redirect("/login");
+});
+
 
 app.post('/login',
   function(req, res) {
@@ -90,7 +97,7 @@ function(req, res) {
   var user = new User({name: username, hash: password});
 });
 
-app.post('/links',
+app.post('/links', validateUser,
 function(req, res) {
 
   var uri = req.body.url;
