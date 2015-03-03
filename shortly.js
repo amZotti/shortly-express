@@ -94,7 +94,11 @@ app.post('/signup',
 function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
-  var user = new User({name: username, hash: password});
+  var user = new User({name: username, hash: password}, function(userId) {
+    console.log("USER CREATED!", userId)
+    req.session.userId = userId;
+    res.redirect('/');
+  });
 });
 
 app.post('/links', validateUser,
