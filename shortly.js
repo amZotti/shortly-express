@@ -80,7 +80,6 @@ app.get('/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/login' }),
   function(req, res) {
     // Successful authentication, redirect home.
-    console.log('works');
     res.redirect('/');
   });
 
@@ -89,7 +88,12 @@ function(req, res) {
   res.redirect('/login');
 });
 
-app.get('/login', passport.authenticate('github'), function(){});
+app.get('/github-login', passport.authenticate('github'), function(){});
+
+app.get('/login',
+function(req, res) {
+  res.render('login');
+});
 
 app.get('/logout',
 function(req, res) {
